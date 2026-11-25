@@ -1,15 +1,34 @@
 from models import SalesAnalyzer
 
-def main():
-    analyzer = SalesAnalyzer("sales.csv")
+def ask_period(analyzer):
+    while True:
+        parts = input("Месец (2026-01) или период (2026-01 2026-03), Enter = всички данни: ").split()
+        try:
+            if not parts:
+                analyzer.select_period()
+            elif len(parts) <= 2:
+                analyzer.select_period(*parts)
+            else:
+                print("Въведете най-много два месеца.")
+                continue
+        except ValueError as error:
+            print(f"Невалиден период ({error}). Пример: 2026-01 2026-03")
+            continue
+        break
 
-    if not analyzer.load_data():
-        print("Няма данни за анализ. Проверете файла")
+def main():
+    analyzer = SalesAnalyzer("data")
+
+    if not analyzer.load_folder():
+        print("Няма данни за анализ. Проверете папката data.")
         return
 
+    ask_period(analyzer)
+
     while True:
-        print("\n1) Общ приход  2) Приход по категории  3) Филтър по категория")
-        print("4) Топ продукти  5) Графика  0) Изход")
+        print(f"\nПериод: {analyzer.period_label}")
+        print("1) Общ приход  2) Приход по категории  3) Филтър по категория")
+        print("4) Топ продукти  5) Графика  6) Смяна на период 0) Изход")
         choice = input("Избор: ").strip()
 
         if choice == "1":
@@ -29,6 +48,8 @@ def main():
                 print(f"{name}: {total:.2f} EUR")
         elif choice == "5":
             analyzer.plot_by_category()
+        elif choice == "6":
+            ask_period(analyzer)
         elif choice == "0":
             break
         else:
